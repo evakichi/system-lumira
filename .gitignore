@@ -1,3 +1,16 @@
+# add for system-lumira
+cache
+certs
+chroma-data
+open-webui-data
+.env
+uploads
+webui-user.sh
+models
+ollama-model
+stable-diffusion-webui-repositories
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

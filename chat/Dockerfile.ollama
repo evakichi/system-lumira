@@ -1,0 +1,5 @@
+FROM ollama/ollama
+RUN useradd lumira && su - lumira
+USER lumira
+WORKDIR /home/lumira
+

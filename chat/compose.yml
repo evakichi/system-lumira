@@ -1,0 +1,99 @@
+services:
+  system-lumira-ollama:
+    hostname: system-lumira-ollama
+    container_name: system-lumira-ollama
+    build:
+      context: .
+      dockerfile: Dockerfile.ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ./ollama-model:/home/lumiran/.ollama
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+    tty: true
+    user: lumira
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  system-lumira-open-webui:
+    hostname: system-lumira-open-webui
+    container_name: system-lumira-open-webui
+    build:
+      context: .
+      dockerfile: Dockerfile.open-webui
+    ports:
+      - 8080:8080
+    environment:
+      - TZ=${TZ}
+      - CHROMA_HTTP_HOST=system-lumira-chromadb
+      - CHROMA_HTTP_PORT=8000
+      - CHROMA_HTTP_SSL=false
+      - WEB_SEARCH_TRUST_ENV=true
+      - OLLAMA_BASE_URL=http://${OLLAMA_SERVER}:11434
+      - WEB_SEARCH_ENGINE=tavily
+      - ENABLE_WEB_SEARCH=true
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - ENABLE_USER_WEBHOOKS=true
+      - USER_PERMISSIONS_FEATURES_USER_WEBHOOKS=true
+      - DEFAULT_USER_ROLE=user
+      - WEBUI_URL=https://${DOMAIN_NAME}
+      - OAUTH_CLIENT_ID=OpenWebUI
+      - OAUTH_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - OAUTH_SCOPES=openid
+      - OPENID_PROVIDER_URL=https://${KEYCLOAK_SERVER}/realms/OpenWebUI/.well-known/openid-configuration
+      - OAUTH_PROVIDER_NAME=keycloak
+      - OPENID_REDIRECT_URI=https://${DOMAIN_NAME}/oauth/oidc/callback
+      - ENABLE_OAUTH_SIGNUP=true
+    volumes:
+      - ./open-webui-data/:/app/backend/data
+    restart: unless-stopped
+  system-lumira-stable-diffusion-webui:
+    hostname: system-lumira-stable-diffusion-webui
+    container_name: system-lumira-stable-diffusion-webui
+    build:
+      context: .
+      dockerfile: Dockerfile.stable-diffusion-webui
+    ports:
+      - 7860:7860
+    volumes:
+      - ./models/Stable-diffusion/:/home/stable-diffusion-webui/stable-diffusion-webui/models/Stable-diffusion/
+      - ./stable-diffusion-webui-repositories/:/home/stable-diffusion-webui/stable-diffusion-webui/repositories/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+  system-lumira-chromadb:
+    hostname: system-lumira-chromadb
+    container_name: system-lumira-chromadb
+    image: chromadb/chroma:1.4.2.dev43
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./chroma-data/:/data/
+    restart: unless-stopped
+  system-lumira-fastmcp:
+    hostname: system-lumira-fastmcp
+    container_name: system-lumira-fastmcp
+    build:
+      context: ./
+      dockerfile: Dockerfile.fastmcp
+    ports:
+      - 8000:8000
+    volumes:
+      - ./fastmcp.py:/root/fastmcp-server.py:ro
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - SUMMARIZER_URL=${SUMMARIZER_URL}
+      - DISTRIBUTER_URL=${DISTRIBUTER_URL}
+    tty: true
+    restart: unless-stopped

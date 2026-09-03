@@ -1,0 +1,16 @@
+FROM python:3.10.6-bullseye
+
+#COPY sources.list /etc/apt/sources.list
+RUN apt-get update && apt-get -y upgrade
+RUN apt-get -y install git python3-venv libgl1 libglib2.0-0
+
+RUN useradd -u 1000 stable-diffusion-webui && mkdir -p /home/stable-diffusion-webui/ && chown stable-diffusion-webui:stable-diffusion-webui /home/stable-diffusion-webui/
+USER stable-diffusion-webui
+RUN cd ${HOME} && git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+COPY ./webui-user.sh /home/stable-diffusion-webui/stable-diffusion-webui/
+RUN cd ${HOME}/stable-diffusion-webui/ && git checkout dev && ./webui.sh
+
+EXPOSE 7860
+
+COPY ./stable-diffusion-webui.sh /tmp/
+CMD /tmp/stable-diffusion-webui.sh

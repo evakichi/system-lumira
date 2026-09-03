@@ -1,0 +1,49 @@
+services:
+  keycloak:
+    container_name: keycloak
+    hostname: keycloak
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      - TZ=${TZ}
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=postgres
+      - KC_DB_URL_PORT=5432
+      - KC_DB_USERNAME=${KEYCLOAK_DB_USERNAME}
+      - KC_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
+      - KC_HOSTNAME=https://${DOMAIN_NAME}:443/
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_HOSTNAME_STRICT=false
+      - KC_PROXY=edge
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN_NAME}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      #- KC_HTTPS_CERTIFICATE_FILE=/opt/certs/${DOMAIN_NAME}.crt
+      #- KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/certs/${DOMAIN_NAME}.key
+    command:
+      start-dev
+    restart: always
+    ports:
+      - 8081:8080
+    volumes:
+      - keycloak-volume:/opt/keycloak/data
+      #- ./certs/lumira-kc.power-of-ai.com.crt:/opt/certs/${DOMAIN_NAME}.crt
+      #- ./certs/lumira-kc.power-of-ai.com.key:/opt/certs/${DOMAIN_NAME}.key
+    tty: true
+    user: root
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    hostname: postgres
+    image: postgres:17.7-trixie
+    volumes:
+      - db-store:/var/lib/postgresql/data
+    environment:
+      - TZ=${TZ}
+      - POSTGRES_USER=${KEYCLOAK_DB_USERNAME}
+      - POSTGRES_PASSWORD=${KEYCLOAK_DB_PASSWORD}
+    restart: always
+
+volumes:
+  keycloak-volume:
+  db-store:

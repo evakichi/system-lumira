@@ -8,7 +8,7 @@ services:
     ports:
       - 11434:11434
     volumes:
-      - ./ollama-model:/home/lumiran/.ollama
+      - ./ollama-model:/home/lumira/.ollama
     environment:
       - TZ=${TZ}
     restart: unless-stopped
@@ -93,7 +93,5 @@ services:
       - ./fastmcp.py:/root/fastmcp-server.py:ro
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
-      - SUMMARIZER_URL=${SUMMARIZER_URL}
-      - DISTRIBUTER_URL=${DISTRIBUTER_URL}
     tty: true
     restart: unless-stopped

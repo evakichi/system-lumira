@@ -11,6 +11,7 @@ services:
       - ./ollama-model:/home/lumira/.ollama
     environment:
       - TZ=${TZ}
+      - OLLAMA_KEEP_ALIVE=10s
     restart: unless-stopped
     tty: true
     user: lumira
@@ -52,6 +53,13 @@ services:
       - ENABLE_OAUTH_SIGNUP=true
     volumes:
       - ./open-webui-data/:/app/backend/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     restart: unless-stopped
   system-lumira-stable-diffusion-webui:
     hostname: system-lumira-stable-diffusion-webui
